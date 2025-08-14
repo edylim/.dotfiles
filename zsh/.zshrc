@@ -106,13 +106,6 @@ export ASDF_DIR="/Users/ed/.asdf"
 # macOS-specific settings
 if [[ "$(uname)" == "Darwin" ]]; then
   export PATH="/usr/local/opt/openssl/bin:$PATH"
-
-  # ks for macOS keychain
-  if command -v ks &> /dev/null; then
-    export KS_DEFAULT_KEYCHAIN="KEYS"
-    export GEMINI_API_KEY=$(ks -k KEYS show GEMINI_API_KEY)
-    export GOOGLE_CLOUD_PROJECT=$(ks -k KEYS show GOOGLE_CLOUD_PROJECT)
-  fi
 fi
 
 # awrit
