@@ -93,7 +93,7 @@ install_core_packages() {
   info "Installing core packages..."
   local PACKAGES_MAC=(git stow zsh neovim tmux fzf bat htop gh jq tree wget mas zoxide lazygit ripgrep fd ffmpeg sevenzip poppler resvg imagemagick)
   local CASKS_MAC=(kitty font-symbols-only-nerd-font)
-  local PACKAGES_LINUX=(git stow zsh neovim tmux fzf bat htop gh jq tree wget zoxide lazygit ripgrep fd-find build-essential ffmpeg p7zip-full poppler-utils librsvg2-bin imagemagick)
+  local PACKAGES_LINUX=(git stow zsh neovim tmux fzf bat htop gh jq tree wget zoxide lazygit ripgrep fd-find build-essential ffmpeg p7zip-full unzip poppler-utils librsvg2-bin imagemagick)
   local CASKS_LINUX=(kitty) # Some systems might have kitty as a direct package
 
   if [[ "$OS" == "macos" ]]; then
