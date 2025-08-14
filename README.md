@@ -27,16 +27,40 @@ The installation script will:
 
 This setup includes configurations for the following applications:
 
-- **Shell:** Zsh with Prezto
-- **Terminal:** Kitty
-- **Multiplexer:** Tmux with TPM
-- **Editor:** Neovim (via GrumpyVim)
-- **Git:** Basic git configuration with support for a local private config.
-- **Other Tools:**
-    - `awrit`: A custom application.
-    - `yazi`: A file manager.
-    - `asdf`: A version manager.
-    - `zoxide`: A smarter `cd` command.
+### Zsh
+
+- **Framework:** [Prezto](https://github.com/sorin-ionescu/prezto)
+- **Prompt:** [Powerlevel10k](https://github.com/romkatv/powerlevel10k)
+- **Version Manager:** [asdf](https://asdf-vm.com/)
+- **Directory Navigation:** [zoxide](https://github.com/ajeetdsouza/zoxide)
+
+### Tmux
+
+- **Prefix:** `Ctrl+a`
+- **Plugin Manager:** [TPM (Tmux Plugin Manager)](https://github.com/tmux-plugins/tpm)
+- **Plugins:**
+    - `tmux-resurrect`: Persists tmux environment across system restarts.
+    - `vim-tmux-navigator`: Seamless navigation between Vim and tmux panes.
+    - `tmux-better-mouse-mode`: Better mouse support.
+    - `tmux-gruvbox`: A gruvbox theme.
+    - `tmux-spotify`: Displays the current Spotify track.
+
+### Kitty
+
+- The configuration is based on the default `kitty.conf` with custom keybindings for window management.
+- A custom `kitty.css` is used for the `awrit` application.
+
+### Git
+
+- The configuration is minimal and includes a `.gitconfig.local` for user-specific settings.
+
+### Yazi
+
+- A basic `yazi.toml` configuration is provided for the Yazi file manager.
+
+### Awrit
+
+- A custom browser-like application with specific keybindings.
 
 ## Customization
 
