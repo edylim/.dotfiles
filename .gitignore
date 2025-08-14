@@ -1,0 +1,8 @@
+# Ignore local-only configurations
+.gitconfig.local
+
+# Ignore macOS-specific files
+.DS_Store
+
+# Ignore backup files created by the install script
+*.bak.*
