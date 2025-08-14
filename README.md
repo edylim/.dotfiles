@@ -4,10 +4,10 @@ These are my personal dotfiles for setting up a development environment on macOS
 
 ## Installation
 
-To install these dotfiles, clone the repository and run the `install.sh` script:
+To install, fork the repository and run the `install.sh` script:
 
 ```bash
-git clone https://github.com/your-username/dotfiles.git ~/.dotfiles
+git clone https://github.com/your-username/.dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
 ./install.sh
 ```
@@ -36,19 +36,19 @@ This setup includes configurations for the following applications:
 
 ### Tmux
 
-- **Prefix:** `Ctrl+a`
+- **Prefix:** `ctrl+a`
 - **Plugin Manager:** [TPM (Tmux Plugin Manager)](https://github.com/tmux-plugins/tpm)
 - **Plugins:**
-    - `tmux-resurrect`: Persists tmux environment across system restarts.
-    - `vim-tmux-navigator`: Seamless navigation between Vim and tmux panes.
-    - `tmux-better-mouse-mode`: Better mouse support.
-    - `tmux-gruvbox`: A gruvbox theme.
-    - `tmux-spotify`: Displays the current Spotify track.
+  - `tmux-resurrect`: Persists tmux environment across system restarts.
+  - `vim-tmux-navigator`: Seamless navigation between Vim and tmux panes.
+  - `tmux-better-mouse-mode`: Better mouse support.
+  - `tmux-gruvbox`: A gruvbox theme.
+  - `tmux-spotify`: Displays the current Spotify track.
 
 ### Kitty
 
 - The configuration is based on the default `kitty.conf` with custom keybindings for window management.
-- A custom `kitty.css` is used for the `awrit` application.
+- A custom `kitty.css` for color mapping is used for the `awrit` application.
 
 ### Git
 
@@ -85,3 +85,4 @@ To set up your personal git information, create a `~/.gitconfig.local` file with
 ## Structure
 
 The dotfiles are organized by application. The `stow` command is used to create symlinks from the files in this repository to your home directory. For example, the contents of the `zsh` directory will be symlinked to `~/.zshrc`, `~/.zprofile`, etc.
+
