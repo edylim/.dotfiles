@@ -247,7 +247,7 @@ stow_dotfiles() {
   fi
 
   info "Stowing dotfiles..."
-  local PACKAGES=(git zsh kitty tmux yazi awrit)
+  local PACKAGES=(git zsh kitty tmux yazi)
   cd ~/.dotfiles
   for pkg in "${PACKAGES[@]}"; do
     info "Stowing $pkg..."
