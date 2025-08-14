@@ -4,10 +4,10 @@ These are my personal dotfiles for setting up a development environment on macOS
 
 ## Installation
 
-To install, fork the repository and run the `install.sh` script:
+To install, fork the repository and run the `install.sh` script (Clone this repo at your own risk. There will be CONSTANT breaking changes...):
 
 ```bash
-git clone https://github.com/your-username/.dotfiles.git ~/.dotfiles
+git clone https://github.com/your-username/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
 ./install.sh
 ```
@@ -85,4 +85,3 @@ To set up your personal git information, create a `~/.gitconfig.local` file with
 ## Structure
 
 The dotfiles are organized by application. The `stow` command is used to create symlinks from the files in this repository to your home directory. For example, the contents of the `zsh` directory will be symlinked to `~/.zshrc`, `~/.zprofile`, etc.
-
