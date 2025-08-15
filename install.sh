@@ -32,13 +32,12 @@ prompt_user() {
 
   read -p "$question [Y]es/[n]o/[a]ll? " choice
   case "$choice" in
-    a|A ) AUTO_INSTALL_ALL=true; return 0;;
-    y|Y|"" ) return 0;;
-    n|N ) return 1;;
+    a|A ) AUTO_INSTALL_ALL=true; return 0;; 
+    y|Y|"" ) return 0;; 
+    n|N ) return 1;; 
     * ) echo "Invalid input. Please enter y, n, or a."; prompt_user "$question";;
   esac
 }
-
 
 # --- OS Detection ---
 OS=""
@@ -86,47 +85,50 @@ install_package_manager() {
 # --- Application Installation ---
 install_core_packages() {
   info "Installing core packages..."
-  local PACKAGES_MAC=(git stow zsh neovim tmux fzf bat htop gh jq tree wget mas zoxide lazygit ripgrep fd ffmpeg sevenzip poppler resvg imagemagick)
-  local CASKS_MAC=(kitty font-symbols-only-nerd-font)
-  local PACKAGES_LINUX=(git stow zsh neovim tmux fzf bat htop gh jq tree wget zoxide lazygit ripgrep fd-find build-essential ffmpeg p7zip-full unzip poppler-utils librsvg2-bin imagemagick)
-  local CASKS_LINUX=(kitty) # Some systems might have kitty as a direct package
-
   if [[ "$OS" == "macos" ]]; then
-    info "Installing formulae: ${PACKAGES_MAC[*]}"
-    brew install "${PACKAGES_MAC[@]}"
-    info "Installing casks: ${CASKS_MAC[*]}"
-    brew install --cask "${CASKS_MAC[@]}"
+    info "Installing packages from Brewfile..."
+    if ! brew bundle --file="$HOME/.dotfiles/homebrew/Brewfile"; then
+      error "Failed to install packages from Brewfile."
+    fi
   elif [[ "$OS" == "linux" ]]; then
+    local PACKAGES_LINUX=("git" "stow" "zsh" "neovim" "tmux" "fzf" "bat" "htop" "gh" "jq" "tree" "wget" "zoxide" "lazygit" "ripgrep" "fd-find" "build-essential" "ffmpeg" "p7zip-full" "unzip" "poppler-utils" "librsvg2-bin" "imagemagick" "kitty" "nodejs")
     info "Installing packages: ${PACKAGES_LINUX[*]}"
     sudo $PKG_MANAGER install -y "${PACKAGES_LINUX[@]}"
   fi
   success "Core packages installed."
 }
 
+install_npm_tools() {
+  info "Installing global npm packages..."
+  local NPM_PACKAGES=("eslint@latest" "prettier@latest" "eslint-config-airbnb-base@latest" "eslint-plugin-import@latest" "eslint-config-prettier@latest")
+  if [[ "$OS" == "linux" ]]; then
+    NPM_PACKAGES+=("@google/gemini-cli@latest")
+  fi
+  sudo npm install -g "${NPM_PACKAGES[@]}"
+  success "Global npm packages installed."
+}
+
 install_awrit() {
     info "Installing Awrit..."
     local AW_INSTALL_DIR="$HOME/.awrit"
-    
-    if [ -d "$AW_INSTALL_DIR" ]; then
-        success "Awrit appears to be already installed at $AW_INSTALL_DIR."
-    else
+
+    if [ ! -f "$AW_INSTALL_DIR/awrit" ]; then
         info "Downloading Awrit to $AW_INSTALL_DIR..."
         curl -fsS https://chase.github.io/awrit/get | DOWNLOAD_TO="$AW_INSTALL_DIR" bash
         success "Awrit downloaded."
-    fi
-
-    local KITTY_CSS_SOURCE="$HOME/.dotfiles/awrit/kitty.css"
-    local KITTY_CSS_DEST="$AW_INSTALL_DIR/dist/kitty.css"
-
-    if [ -f "$KITTY_CSS_SOURCE" ]; then
-        info "Placing dotfiles version of kitty.css into awrit installation..."
-        mkdir -p "$(dirname "$KITTY_CSS_DEST")"
-        cp "$KITTY_CSS_SOURCE" "$KITTY_CSS_DEST"
-        success "Awrit's kitty theme has been updated from dotfiles."
     else
-        warn "Could not find source kitty.css in dotfiles. Skipping placement."
-        warn "Expected at: $KITTY_CSS_SOURCE"
+        success "Awrit appears to be already installed at $AW_INSTALL_DIR."
     fi
+
+    info "Stowing awrit configuration..."
+    # Remove the default kitty.css if it exists, so stow can create a symlink
+    if [ -f "$AW_INSTALL_DIR/dist/kitty.css" ]; then
+        rm "$AW_INSTALL_DIR/dist/kitty.css"
+    fi
+    cd ~/.dotfiles
+    stow -R awrit
+    cd - > /dev/null
+    success "Awrit configuration stowed."
 }
 
 install_yazi() {
@@ -136,9 +138,7 @@ install_yazi() {
         return
     fi
 
-    if [[ "$OS" == "macos" ]]; then
-        brew install yazi
-    elif [[ "$OS" == "linux" ]]; then
+    if [[ "$OS" == "linux" ]]; then
         if [[ "$PKG_MANAGER" == "dnf" ]]; then
             info "Enabling COPR repository for Yazi..."
             sudo dnf install -y dnf-plugins-core
@@ -196,29 +196,10 @@ install_grumpyvim() {
   success "GrumpyVim installed."
 }
 
-# --- Pre-Stow Conflict Handling ---
-handle_conflicts() {
-  info "Checking for and fixing conflicting files..."
-  local CONFLICTS=(".aliases" ".dircolors" ".p10k.zsh" ".zpreztorc" ".zprofile" ".zshrc" ".gitconfig" ".tmux.conf")
-  for file in "${CONFLICTS[@]}"; do
-    local target_path="$HOME/$file"
-    if [ -e "$target_path" ]; then
-      if [ -L "$target_path" ]; then
-        warn "Incorrect symlink found at $target_path. Removing it."
-        rm "$target_path"
-      elif [ -f "$target_path" ]; then
-        warn "Existing file found at $target_path. Backing it up."
-        mv "$target_path" "$target_path.bak.$(date +%F-%T)"
-      fi
-    fi
-  done
-  success "Conflict check complete."
-}
-
 # --- Configuration ---
 stow_dotfiles() {
   info "Linking configuration files with Stow..."
-  local PACKAGES=(git zsh kitty tmux yazi)
+  local PACKAGES=("git" "zsh" "kitty" "tmux" "yazi" "linting")
   cd ~/.dotfiles
   for pkg in "${PACKAGES[@]}"; do
     info "Stowing $pkg..."
@@ -271,16 +252,21 @@ display_summary() {
   message+="  - font-symbols-only-nerd-font: A font patched with a high number of glyphs and icons (https://www.nerdfonts.com/)\n"
   message+="  - build-essential: (Linux only) Installs tools for compiling software from source.\n"
   message+="  - unzip: (Linux only) A utility for extracting ZIP archives.\n\n"
+  message+="--- JavaScript Development Tools ---\n"
+  message+="  - Node.js: A JavaScript runtime built on Chrome's V8 JavaScript engine.\n"
+  message+="  - ESLint: A tool for identifying and reporting on patterns found in ECMAScript/JavaScript code.\n"
+  message+="  - Prettier: An opinionated code formatter.\n\n"
   message+="--- Custom Applications and Configurations ---\n"
+  message+="  - Gemini CLI: A command-line interface for Google's Gemini model.\n"
   message+="  - Awrit: A custom browser-like application (https://github.com/chase/awrit)\n"
   message+="  - Yazi: A terminal file manager (https://github.com/sxyazi/yazi)\n"
   message+="  - Prezto: A configuration framework for Zsh (https://github.com/sorin-ionescu/prezto)\n"
   message+="  - TPM (Tmux Plugin Manager): A plugin manager for tmux (https://github.com/tmux-plugins/tpm)\n"
   message+="  - GrumpyVim: A Neovim configuration (https://github.com/edylim/grumpy-vim)\n\n"
   message+="--- Configuration Steps ---\n"
-  message+="  - Back up any existing dotfiles.\n"
   message+="  - Link the new dotfiles using stow.\n"
   message+="  - Set Zsh as the default shell.\n"
+  message+="\nNOTE: This script will require sudo access and may prompt for your password to install system-wide packages and change the default shell.\n"
 
   echo -e "$message"
 }
@@ -297,11 +283,11 @@ main() {
 
   install_package_manager
   install_core_packages
+  install_npm_tools
   install_awrit
   install_yazi
   install_shell_frameworks
   install_grumpyvim
-  handle_conflicts
   stow_dotfiles
   set_zsh_default
 

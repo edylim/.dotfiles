@@ -47,13 +47,32 @@ The installation script will install and configure the following software:
 - **build-essential:** (Linux only) Installs tools for compiling software from source.
 - **unzip:** (Linux only) A utility for extracting ZIP archives.
 
+### JavaScript Development Tools
+
+- **Node.js:** A JavaScript runtime built on Chrome's V8 JavaScript engine.
+- **ESLint:** A tool for identifying and reporting on patterns found in ECMAScript/JavaScript code.
+- **Prettier:** An opinionated code formatter.
+
 ### Custom Applications and Configurations
 
+- **Gemini CLI:** A command-line interface for Google's Gemini model.
 - **Awrit:** A custom browser-like application (https://github.com/chase/awrit)
 - **Yazi:** A terminal file manager (https://github.com/sxyazi/yazi)
 - **Prezto:** A configuration framework for Zsh (https://github.com/sorin-ionescu/prezto)
 - **TPM (Tmux Plugin Manager):** A plugin manager for tmux (https://github.com/tmux-plugins/tpm)
 - **GrumpyVim:** A Neovim configuration (https://github.com/edylim/grumpy-vim)
+
+## Linting and Formatting
+
+This repository includes a shared configuration for ESLint and Prettier in the `linting/` directory.
+
+To use these configurations in a new project, you can symlink them into your project's root directory:
+
+```bash
+ln -s ~/.dotfiles/linting/.eslintrc.json ./.eslintrc.json
+ln -s ~/.dotfiles/linting/.prettierrc.json ./.prettierrc.json
+ln -s ~/.dotfiles/linting/.prettierignore ./.prettierignore
+```
 
 ## Customization
 
@@ -78,4 +97,3 @@ To set up your personal git information, create a `~/.gitconfig.local` file with
 ## Structure
 
 The dotfiles are organized by application. The `stow` command is used to create symlinks from the files in this repository to your home directory. For example, the contents of the `zsh` directory will be symlinked to `~/.zshrc`, `~/.zprofile`, etc.
-
