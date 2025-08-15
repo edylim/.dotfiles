@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Exit immediately if a command exits with a non-zero status.
-set -e
+set -euo pipefail
 
 # --- Global Variables ---
 AUTO_INSTALL_ALL=false
@@ -85,11 +85,6 @@ install_package_manager() {
 
 # --- Application Installation ---
 install_core_packages() {
-  if ! prompt_user "Install core CLI packages and applications?"; then
-    info "Skipping core package installation."
-    return
-  fi
-
   info "Installing core packages..."
   local PACKAGES_MAC=(git stow zsh neovim tmux fzf bat htop gh jq tree wget mas zoxide lazygit ripgrep fd ffmpeg sevenzip poppler resvg imagemagick)
   local CASKS_MAC=(kitty font-symbols-only-nerd-font)
@@ -109,27 +104,22 @@ install_core_packages() {
 }
 
 install_awrit() {
-    if ! prompt_user "Install Awrit?"; then info "Skipping..."; return; fi
     info "Installing Awrit..."
     local AW_INSTALL_DIR="$HOME/.awrit"
     
-    # Check if the main awrit directory exists. If not, install it.
     if [ -d "$AW_INSTALL_DIR" ]; then
         success "Awrit appears to be already installed at $AW_INSTALL_DIR."
     else
-        # Install awrit to the ~/.awrit directory
         info "Downloading Awrit to $AW_INSTALL_DIR..."
         curl -fsS https://chase.github.io/awrit/get | DOWNLOAD_TO="$AW_INSTALL_DIR" bash
         success "Awrit downloaded."
     fi
 
-    # Now, place the version-controlled kitty.css into the awrit installation.
     local KITTY_CSS_SOURCE="$HOME/.dotfiles/awrit/kitty.css"
     local KITTY_CSS_DEST="$AW_INSTALL_DIR/dist/kitty.css"
 
     if [ -f "$KITTY_CSS_SOURCE" ]; then
         info "Placing dotfiles version of kitty.css into awrit installation..."
-        # Ensure the destination directory exists within the awrit installation
         mkdir -p "$(dirname "$KITTY_CSS_DEST")"
         cp "$KITTY_CSS_SOURCE" "$KITTY_CSS_DEST"
         success "Awrit's kitty theme has been updated from dotfiles."
@@ -140,7 +130,6 @@ install_awrit() {
 }
 
 install_yazi() {
-    if ! prompt_user "Install Yazi File Manager?"; then info "Skipping..."; return; fi
     info "Installing Yazi..."
     if command -v yazi &> /dev/null; then
         success "Yazi is already installed."
@@ -150,12 +139,12 @@ install_yazi() {
     if [[ "$OS" == "macos" ]]; then
         brew install yazi
     elif [[ "$OS" == "linux" ]]; then
-        if [[ "$PKG_MANAGER" == "dnf" ]]; then # Fedora-specific install
+        if [[ "$PKG_MANAGER" == "dnf" ]]; then
             info "Enabling COPR repository for Yazi..."
             sudo dnf install -y dnf-plugins-core
             sudo dnf copr enable -y lihaohong/yazi
             sudo dnf install -y yazi
-        elif [[ "$PKG_MANAGER" == "apt" ]]; then # Debian/Ubuntu: Download official binary
+        elif [[ "$PKG_MANAGER" == "apt" ]]; then
             info "Downloading latest Yazi binary for Debian/Ubuntu..."
             local YAZI_URL=$(curl -s "https://api.github.com/repos/sxyazi/yazi/releases/latest" | jq -r '.assets[] | select(.name | contains("x86_64-unknown-linux-musl.zip")) | .browser_download_url')
             local TEMP_DIR=$(mktemp -d)
@@ -170,13 +159,7 @@ install_yazi() {
 }
 
 install_shell_frameworks() {
-  if ! prompt_user "Install shell frameworks (Prezto, TPM)?"; then
-    info "Skipping shell framework installation."
-    return
-  fi
-
   info "Installing shell frameworks..."
-  # Install Prezto
   if [ ! -d "${ZDOTDIR:-$HOME}/.zprezto" ]; then
     info "Installing Prezto..."
     git clone --recursive https://github.com/sorin-ionescu/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"
@@ -184,7 +167,6 @@ install_shell_frameworks() {
     success "Prezto already installed."
   fi
 
-  # Install TPM (Tmux Plugin Manager)
   if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
     info "Installing TPM for Tmux..."
     git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
@@ -194,13 +176,8 @@ install_shell_frameworks() {
 }
 
 install_grumpyvim() {
-  if ! prompt_user "Install GrumpyVim (Neovim config)?"; then
-    info "Skipping GrumpyVim installation."
-    return
-  fi
-
+  info "Installing GrumpyVim (Neovim config)..."
   local NVIM_CONFIG_DIR="$HOME/.config/nvim"
-  info "Installing GrumpyVim..."
 
   if [ -d "$NVIM_CONFIG_DIR" ]; then
     warn "Existing Neovim configuration found at $NVIM_CONFIG_DIR."
@@ -221,8 +198,7 @@ install_grumpyvim() {
 
 # --- Pre-Stow Conflict Handling ---
 handle_conflicts() {
-  if ! prompt_user "Check for and fix conflicting files?"; then info "Skipping..."; return; fi
-  info "Checking for known conflicting files in home directory..."
+  info "Checking for and fixing conflicting files..."
   local CONFLICTS=(".aliases" ".dircolors" ".p10k.zsh" ".zpreztorc" ".zprofile" ".zshrc" ".gitconfig" ".tmux.conf")
   for file in "${CONFLICTS[@]}"; do
     local target_path="$HOME/$file"
@@ -241,12 +217,7 @@ handle_conflicts() {
 
 # --- Configuration ---
 stow_dotfiles() {
-  if ! prompt_user "Link configuration files with Stow?"; then
-    info "Skipping dotfile linking."
-    return
-  fi
-
-  info "Stowing dotfiles..."
+  info "Linking configuration files with Stow..."
   local PACKAGES=(git zsh kitty tmux yazi)
   cd ~/.dotfiles
   for pkg in "${PACKAGES[@]}"; do
@@ -258,11 +229,6 @@ stow_dotfiles() {
 }
 
 set_zsh_default() {
-  if ! prompt_user "Set Zsh as the default shell?"; then
-    info "Skipping setting Zsh as default."
-    return
-  fi
-
   info "Setting Zsh as the default shell..."
   local ZSH_PATH=$(which zsh)
   if [[ "$SHELL" == "$ZSH_PATH" ]]; then
@@ -276,10 +242,59 @@ set_zsh_default() {
   fi
 }
 
+display_summary() {
+  local message="This script will set up your development environment. Here is a summary of what will be installed and configured:\n\n"
+  message+="--- Core CLI Packages ---\n"
+  message+="  - git: A distributed version control system (https://git-scm.com/)\n"
+  message+="  - stow: A symlink farm manager for managing dotfiles (https://www.gnu.org/software/stow/)\n"
+  message+="  - zsh: A powerful shell with advanced features (https://www.zsh.org/)\n"
+  message+="  - neovim: A modern, highly extensible, and customizable text editor (https://neovim.io/)\n"
+  message+="  - tmux: A terminal multiplexer to manage multiple terminal sessions (https://github.com/tmux/tmux/wiki)\n"
+  message+="  - fzf: A command-line fuzzy finder (https://github.com/junegunn/fzf)\n"
+  message+="  - bat: A cat(1) clone with syntax highlighting (https://github.com/sharkdp/bat)\n"
+  message+="  - htop: An interactive process viewer (https://htop.dev/)\n"
+  message+="  - gh: GitHub's official command-line tool (https://cli.github.com/)\n"
+  message+="  - jq: A command-line JSON processor (https://stedolan.github.io/jq/)\n"
+  message+="  - tree: A recursive directory listing program (https://gitlab.com/OldManProgrammer/unix-tree)\n"
+  message+="  - wget: A utility for non-interactive download of files from the Web (https://www.gnu.org/software/wget/)\n"
+  message+="  - mas: A command-line interface for the Mac App Store (https://github.com/mas-cli/mas)\n"
+  message+="  - zoxide: A smarter cd command that learns your habits (https://github.com/ajeetdsouza/zoxide)\n"
+  message+="  - lazygit: A simple terminal UI for git commands (https://github.com/jesseduffield/lazygit)\n"
+  message+="  - ripgrep: A line-oriented search tool (https://github.com/BurntSushi/ripgrep)\n"
+  message+="  - fd: A simple and fast alternative to 'find' (https://github.com/sharkdp/fd)\n"
+  message+="  - ffmpeg: A complete, cross-platform solution to record, convert and stream audio and video (https://ffmpeg.org/)\n"
+  message+="  - sevenzip: A file archiver with a high compression ratio (https://www.7-zip.org/)\n"
+  message+="  - poppler: A PDF rendering library and command-line tools (https://poppler.freedesktop.org/)\n"
+  message+="  - resvg: An SVG rendering library (https://github.com/RazrFalcon/resvg)\n"
+  message+="  - imagemagick: A software suite to create, edit, compose, or convert bitmap images (https://imagemagick.org/)\n"
+  message+="  - kitty: A fast, feature-rich, GPU-based terminal emulator (https://sw.kovidgoyal.net/kitty/)\n"
+  message+="  - font-symbols-only-nerd-font: A font patched with a high number of glyphs and icons (https://www.nerdfonts.com/)\n"
+  message+="  - build-essential: (Linux only) Installs tools for compiling software from source.\n"
+  message+="  - unzip: (Linux only) A utility for extracting ZIP archives.\n\n"
+  message+="--- Custom Applications and Configurations ---\n"
+  message+="  - Awrit: A custom browser-like application (https://github.com/chase/awrit)\n"
+  message+="  - Yazi: A terminal file manager (https://github.com/sxyazi/yazi)\n"
+  message+="  - Prezto: A configuration framework for Zsh (https://github.com/sorin-ionescu/prezto)\n"
+  message+="  - TPM (Tmux Plugin Manager): A plugin manager for tmux (https://github.com/tmux-plugins/tpm)\n"
+  message+="  - GrumpyVim: A Neovim configuration (https://github.com/edylim/grumpy-vim)\n\n"
+  message+="--- Configuration Steps ---\n"
+  message+="  - Back up any existing dotfiles.\n"
+  message+="  - Link the new dotfiles using stow.\n"
+  message+="  - Set Zsh as the default shell.\n"
+
+  echo -e "$message"
+}
+
 
 # --- Main Execution ---
 main() {
   detect_os
+  display_summary
+  if ! prompt_user "Proceed with the installation?"; then
+    info "Installation cancelled."
+    exit 0
+  fi
+
   install_package_manager
   install_core_packages
   install_awrit
