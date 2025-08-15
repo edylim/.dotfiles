@@ -1,13 +1,13 @@
-# My Dotfiles
+# dotfiles
 
-These are my personal dotfiles for setting up a development environment on macOS and Linux. The setup is automated with a comprehensive installation script.
+.dotfiles for setting up a new env on macOS and Linux.
 
 ## Installation
 
-To install, fork the repository and run the `install.sh` script (Clone this repo at your own risk. There will be CONSTANT breaking changes...):
+To install, _fork_ this repository and run the `install.sh` script. If you decide not to fork and just want to do a quick setup, just know that there will breaking changes CONSTANTLY. Do your due diligence before pulling latest!:
 
 ```bash
-git clone https://github.com/your-username/dotfiles.git ~/.dotfiles
+git clone https://github.com/edylim/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
 ./install.sh
 ```
@@ -78,3 +78,4 @@ To set up your personal git information, create a `~/.gitconfig.local` file with
 ## Structure
 
 The dotfiles are organized by application. The `stow` command is used to create symlinks from the files in this repository to your home directory. For example, the contents of the `zsh` directory will be symlinked to `~/.zshrc`, `~/.zprofile`, etc.
+
